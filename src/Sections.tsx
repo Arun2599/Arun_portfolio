@@ -124,7 +124,6 @@ const WORK = [
     company: 'Surfboard Payments',
     period: '2022',
     duration: 'Internship',
-    icon: '🚀',
     projects: [
       {
         name: 'Skill Development',
@@ -147,7 +146,6 @@ const WORK = [
     company: 'Maven Alpha',
     period: 'Jun – Dec 2022',
     duration: '7 months',
-    icon: '🎨',
     projects: [
       {
         name: 'Network App',
@@ -170,7 +168,6 @@ const WORK = [
     company: 'Techcora Corporation',
     period: '2023 – Present',
     duration: '2+ years',
-    icon: '💡',
     projects: [
       {
         name: 'Quick Commerce Platform',
@@ -1175,13 +1172,12 @@ export function Projects() {
                   transition: `background-color 300ms ${EASE}`,
                 }}
               >
-                <span className="text-2xl sm:text-3xl">{w.icon}</span>
                 <span className="flex flex-col">
                   <span
                     style={{
                       ...CARD_TITLE,
                       fontSize: 'clamp(0.95rem, 1.7vw, 1.2rem)',
-                      color: isOn ? '#F4845F' : 'white',
+                      color: isOn ? '#111' : 'white',
                     }}
                   >
                     {w.company}
@@ -1217,8 +1213,8 @@ export function Projects() {
               <div className="relative">
                 <img src={p.image} alt={p.name} loading="lazy" className="h-40 w-full object-cover" />
                 <span
-                  className="absolute top-3 left-3 rounded-full bg-white px-3 py-1 text-xs font-bold"
-                  style={{ color: '#F4845F', ...ANTON, letterSpacing: '0.05em' }}
+                  className="absolute top-3 left-3 rounded-full bg-white px-3.5 py-1.5 text-sm"
+                  style={{ ...CARD_TITLE, letterSpacing: '0.02em' }}
                 >
                   {i + 1} / {activeWork.projects.length}
                 </span>
