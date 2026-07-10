@@ -4,6 +4,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* anchored sections stop below the fixed nav bar */
+section[id] {
+  scroll-margin-top: 64px;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;

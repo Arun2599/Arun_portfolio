@@ -4,11 +4,12 @@ import {
   animate,
   motion,
   useInView,
+  useMotionValueEvent,
   useScroll,
   useTransform,
   type MotionValue,
 } from 'framer-motion'
-import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, Mail, MapPin, Menu, Phone, X } from 'lucide-react'
 import { GRAIN } from './Hero'
 
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
@@ -376,6 +377,106 @@ function Carousel({ resetKey, hint, children }: { resetKey?: string; hint: strin
         </span>
       </div>
     </>
+  )
+}
+
+const NAV_LINKS = [
+  ['About', '#about'],
+  ['Services', '#services'],
+  ['Stack', '#stack'],
+  ['Experience', '#experience'],
+  ['Projects', '#projects'],
+  ['Contact', '#contact'],
+] as const
+
+export function Nav() {
+  const [open, setOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
+  const { scrollY } = useScroll()
+
+  // hide while scrolling down the page, reappear on the way back up
+  useMotionValueEvent(scrollY, 'change', (y) => {
+    const goingDown = y > (scrollY.getPrevious() ?? 0)
+    if (goingDown && y > 120) {
+      setHidden(true)
+      setOpen(false)
+    } else if (!goingDown) {
+      setHidden(false)
+    }
+  })
+
+  return (
+    <motion.header
+      animate={{ y: hidden ? '-120%' : '0%' }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+      className="fixed inset-x-0 top-0 px-3 pt-3 sm:px-5 sm:pt-4"
+      style={{ zIndex: 100 }}
+    >
+      <div
+        className="mx-auto flex max-w-6xl items-center justify-between rounded-full bg-white px-4 py-2 sm:px-6 sm:py-2.5"
+        style={{ boxShadow: '5px 5px 0 rgba(0,0,0,0.18)' }}
+      >
+        <a href="#top" className="flex items-center gap-2" onClick={() => setOpen(false)} aria-label="back to top">
+          <img src="/logo-dark.svg" alt="Arunkumar logo" className="h-8 w-8 sm:h-9 sm:w-9" />
+          <span className="text-xs font-bold uppercase sm:text-sm" style={{ color: '#111', letterSpacing: '0.16em' }}>
+            Arunkumar
+          </span>
+        </a>
+
+        {/* desktop links */}
+        <nav className="hidden items-center gap-6 lg:flex">
+          {NAV_LINKS.map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="text-xs font-bold uppercase hover:opacity-60"
+              style={{ color: '#111', letterSpacing: '0.14em', transition: 'opacity 200ms' }}
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+
+        {/* mobile & tablet: hamburger */}
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-full lg:hidden"
+          style={{ border: '2px solid #111', color: '#111' }}
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? 'close menu' : 'open menu'}
+          aria-expanded={open}
+        >
+          {open ? <X size={18} strokeWidth={2.5} /> : <Menu size={18} strokeWidth={2.5} />}
+        </button>
+      </div>
+
+      {/* mobile dropdown */}
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            className="mx-auto mt-2 flex max-w-6xl flex-col rounded-3xl bg-white p-2 lg:hidden"
+            style={{ boxShadow: '5px 5px 0 rgba(0,0,0,0.18)' }}
+          >
+            {NAV_LINKS.map(([label, href], i) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold uppercase active:bg-black/5"
+                style={{ color: '#111', letterSpacing: '0.12em' }}
+              >
+                <span style={{ color: PALETTE[i % PALETTE.length] }}>✦</span>
+                {label}
+              </a>
+            ))}
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </motion.header>
   )
 }
 
