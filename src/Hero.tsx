@@ -324,7 +324,7 @@ export default function Hero() {
 
         {/* bottom-right link */}
         <a
-          href="mailto:futuristicdesigner07@gmail.com"
+          href="tel:+918667263143"
           className="absolute bottom-6 right-4 sm:bottom-20 sm:right-10 flex items-center gap-1 hover:opacity-100"
           style={{
             zIndex: 60,

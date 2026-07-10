@@ -1,5 +1,5 @@
 import Hero from './Hero'
-import { About, Experience, Marquee, Services, TechStack } from './Sections'
+import { About, Contact, DesignProjects, Experience, Marquee, Projects, Services, TechStack, Testimonials } from './Sections'
 
 export default function App() {
   return (
@@ -10,6 +10,10 @@ export default function App() {
       <Services />
       <TechStack />
       <Experience />
+      <Projects />
+      <DesignProjects />
+      <Testimonials />
+      <Contact />
     </div>
   )
 }
