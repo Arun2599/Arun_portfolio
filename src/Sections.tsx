@@ -86,7 +86,7 @@ const TECH = [
   { name: 'Google Cloud', cat: 'backend', logo: `${DEVICON}/googlecloud/googlecloud-original.svg` },
   { name: 'Figma', cat: 'design', logo: `${DEVICON}/figma/figma-original.svg` },
   { name: 'Adobe Photoshop', cat: 'design', logo: `${DEVICON}/photoshop/photoshop-plain.svg` },
-  { name: 'Framer', cat: 'design', logo: `${DEVICON}/framer/framer-original.svg` },
+  { name: 'Framer', cat: 'design', logo: 'https://cdn.simpleicons.org/framer/0055FF' },
   { name: 'Git', cat: 'tools', logo: `${DEVICON}/git/git-original.svg` },
   { name: 'VS Code', cat: 'tools', logo: `${DEVICON}/vscode/vscode-original.svg` },
 ]
@@ -159,7 +159,7 @@ const WORK = [
         desc: 'Designed and developed components while collaborating with backend team to ensure seamless Firebase integration and deployment.',
         skills: ['UI/UX Design', 'Front-end Development', 'Firebase', 'Design Systems'],
         highlights: ['Team Collaboration', 'Component Library', 'Integration'],
-        image: 'https://images.unsplash.com/photo-1522542550221-31fd8575f5a9?w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&q=80',
       },
     ],
   },
