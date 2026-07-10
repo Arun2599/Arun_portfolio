@@ -16,3 +16,22 @@ body {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -12px; }
 }
+
+/* infinite scrolling ribbon between sections */
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 28s linear infinite;
+}
+
+/* pulsing "Present" dot on the experience timeline */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  100% { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
