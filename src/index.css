@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -44,6 +48,9 @@ body {
 }
 .testimonial-marquee:hover .testimonial-track {
   animation-play-state: paused;
+}
+.marquee-reverse {
+  animation-direction: reverse;
 }
 
 @media (prefers-reduced-motion: reduce) {

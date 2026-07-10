@@ -220,13 +220,41 @@ export default function Hero() {
           </AnimatePresence>
         </div>
 
-        {/* brand label */}
-        <div
-          className="absolute top-6 left-4 sm:left-8 text-xs font-semibold uppercase"
-          style={{ zIndex: 60, color: 'white', opacity: 0.9, letterSpacing: '0.18em' }}
+        {/* top nav */}
+        <nav
+          className="absolute inset-x-0 top-0 flex items-center justify-between gap-4 px-4 pt-4 sm:px-8 sm:pt-6"
+          style={{ zIndex: 60 }}
         >
-          ARUNKUMAR
-        </div>
+          <a href="#top" className="flex shrink-0 items-center gap-2" aria-label="back to top">
+            <img src="/logo.svg" alt="Arunkumar logo" className="h-8 w-8 sm:h-10 sm:w-10" />
+            <span
+              className="hidden text-xs font-semibold uppercase sm:inline"
+              style={{ color: 'white', letterSpacing: '0.18em' }}
+            >
+              Arunkumar
+            </span>
+          </a>
+          <div className="no-scrollbar flex items-center gap-4 overflow-x-auto sm:gap-7">
+            {(
+              [
+                ['About', '#about'],
+                ['Services', '#services'],
+                ['Stack', '#stack'],
+                ['Projects', '#projects'],
+                ['Contact', '#contact'],
+              ] as const
+            ).map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className="whitespace-nowrap text-[11px] font-semibold uppercase hover:opacity-70 sm:text-sm"
+                style={{ color: 'white', letterSpacing: '0.14em', transition: 'opacity 200ms' }}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </nav>
 
         {/* carousel */}
         <div className="absolute inset-0" style={{ zIndex: 3 }}>

@@ -90,8 +90,6 @@ const TECH = [
   { name: 'VS Code', cat: 'tools', logo: `${DEVICON}/vscode/vscode-original.svg` },
 ]
 
-const TECH_CATS = ['all', 'frontend', 'mobile', 'backend', 'design', 'tools']
-
 const JOBS = [
   {
     company: 'Surfboard Payments',
@@ -381,6 +379,38 @@ function Carousel({ resetKey, hint, children }: { resetKey?: string; hint: strin
   )
 }
 
+const TOUCH = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
+
+/* card "hover" that works everywhere: pointer devices get whileHover,
+   touch devices get the same pop driven by scroll position (once:false = animates in AND out) */
+function Pop({
+  tilt = 0,
+  className,
+  style,
+  children,
+}: {
+  tilt?: number
+  className?: string
+  style?: React.CSSProperties
+  children: React.ReactNode
+}) {
+  return (
+    <motion.div
+      initial={false}
+      animate={{ rotate: tilt, scale: 1, y: 0 }}
+      whileInView={TOUCH ? { rotate: 0, scale: 1.03, y: -5 } : undefined}
+      viewport={TOUCH ? { once: false, amount: 0.6 } : undefined}
+      whileHover={{ rotate: 0, scale: 1.04, y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 240, damping: 24 }}
+      className={className}
+      style={style}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 function Grain() {
   return (
     <div
@@ -531,23 +561,26 @@ export function About() {
           {STATS.map((s, i) => (
             <motion.div
               key={s.label}
-              initial={{ opacity: 0, y: 30, rotate: s.tilt }}
-              whileInView={{ opacity: 1, y: 0, rotate: s.tilt }}
-              whileHover={{ rotate: 0, scale: 1.06 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="flex flex-col items-center gap-1 rounded-3xl px-4 py-6"
-              style={{ backgroundColor: s.bg, border: '3px solid white', boxShadow: '7px 7px 0 rgba(0,0,0,0.18)' }}
             >
-              <span className="text-white" style={{ ...ANTON, fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)' }}>
-                <CountUp value={s.value} suffix={s.suffix} />
-              </span>
-              <span
-                className="text-center text-[10px] font-semibold uppercase text-white sm:text-xs"
-                style={{ letterSpacing: '0.12em', opacity: 0.95 }}
+              <Pop
+                tilt={s.tilt}
+                className="flex flex-col items-center gap-1 rounded-3xl px-4 py-6"
+                style={{ backgroundColor: s.bg, border: '3px solid white', boxShadow: '7px 7px 0 rgba(0,0,0,0.18)' }}
               >
-                {s.label}
-              </span>
+                <span className="text-white" style={{ ...ANTON, fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)' }}>
+                  <CountUp value={s.value} suffix={s.suffix} />
+                </span>
+                <span
+                  className="text-center text-[10px] font-semibold uppercase text-white sm:text-xs"
+                  style={{ letterSpacing: '0.12em', opacity: 0.95 }}
+                >
+                  {s.label}
+                </span>
+              </Pop>
             </motion.div>
           ))}
         </div>
@@ -718,8 +751,6 @@ export function TechStack() {
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const ghostX = useTransform(scrollYProgress, [0, 1], ['-12%', '8%'])
-  const [cat, setCat] = useState('all')
-  const visible = TECH.filter((t) => cat === 'all' || t.cat === cat)
 
   return (
     <section
@@ -774,62 +805,42 @@ export function TechStack() {
           Tech Stack
         </motion.h2>
 
-        {/* category filter pills */}
-        <div className="mt-8 flex flex-wrap gap-2 sm:gap-3">
-          {TECH_CATS.map((c) => {
-            const isOn = c === cat
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCat(c)}
-                className="rounded-full px-5 py-2 text-xs font-bold uppercase sm:px-6 sm:text-sm"
-                style={{
-                  letterSpacing: '0.1em',
-                  border: '2px solid white',
-                  backgroundColor: isOn ? 'white' : 'transparent',
-                  color: isOn ? '#6EB5FF' : 'white',
-                  transition: `background-color 250ms ${EASE}, color 250ms ${EASE}`,
-                }}
-              >
-                {c}
-              </button>
-            )
-          })}
-        </div>
+      </div>
 
-        {/* sticker wall */}
-        <motion.div layout className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-          <AnimatePresence mode="popLayout">
-            {visible.map((t, i) => (
-              <motion.div
-                key={t.name}
-                layout
-                initial={{ opacity: 0, scale: 0.7, rotate: i % 2 ? 3 : -3 }}
-                animate={{ opacity: 1, scale: 1, rotate: i % 2 ? 2 : -2 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                whileHover={{ rotate: 0, scale: 1.07, y: -6 }}
-                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                className="flex flex-col items-center gap-3 rounded-3xl bg-white px-4 py-7"
-                style={{ boxShadow: '7px 7px 0 rgba(0,0,0,0.18)' }}
-              >
-                <img src={t.logo} alt="" loading="lazy" className="h-12 w-12 sm:h-14 sm:w-14" />
-                <span
-                  className="text-center text-xs font-bold uppercase sm:text-sm"
-                  style={{ color: '#111', letterSpacing: '0.06em' }}
+      {/* auto-scrolling tool rows on every screen size, like the testimonial marquee */}
+      <div className="relative mt-12 flex flex-col gap-4 sm:gap-5" style={{ zIndex: 10 }}>
+        {[TECH.slice(0, 7), TECH.slice(7)].map((row, r) => (
+          <div key={r} className="testimonial-marquee overflow-hidden">
+            <div
+              className={`testimonial-track ${r === 1 ? 'marquee-reverse' : ''}`}
+              style={{ animationDuration: '26s' }}
+            >
+              {[...row, ...row].map((t, i) => (
+                <div
+                  key={i}
+                  aria-hidden={i >= row.length}
+                  className="flex items-center gap-3 rounded-2xl bg-white px-5 py-3.5 sm:gap-4 sm:rounded-3xl sm:px-7 sm:py-5"
+                  style={{
+                    marginRight: '1.25rem',
+                    boxShadow: '5px 5px 0 rgba(0,0,0,0.18)',
+                    rotate: i % 2 ? '1deg' : '-1deg',
+                  }}
                 >
-                  {t.name}
-                </span>
-                <span
-                  className="rounded-full px-3 py-0.5 text-[10px] font-bold uppercase text-white"
-                  style={{ backgroundColor: '#6EB5FF', letterSpacing: '0.1em' }}
-                >
-                  {t.cat}
-                </span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+                  <img src={t.logo} alt="" loading="lazy" className="h-8 w-8 sm:h-11 sm:w-11" />
+                  <span className="whitespace-nowrap" style={{ ...CARD_TITLE, fontSize: 'clamp(0.95rem, 1.4vw, 1.2rem)' }}>
+                    {t.name}
+                  </span>
+                  <span
+                    className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase text-white sm:px-3 sm:py-1 sm:text-xs"
+                    style={{ backgroundColor: '#6EB5FF', letterSpacing: '0.08em' }}
+                  >
+                    {t.cat}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -938,9 +949,8 @@ export function Experience() {
                 }}
               />
 
-              <motion.div
-                whileHover={{ rotate: 0, scale: 1.02 }}
-                initial={{ rotate: j.tilt }}
+              <Pop
+                tilt={j.tilt}
                 className="rounded-3xl bg-white p-6 sm:p-8"
                 style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
               >
@@ -964,7 +974,7 @@ export function Experience() {
                 <p className="mt-1 text-sm font-medium sm:text-base" style={{ color: '#111', opacity: 0.55 }}>
                   {j.location}
                 </p>
-              </motion.div>
+              </Pop>
             </motion.div>
           ))}
         </div>
@@ -1092,13 +1102,17 @@ export function Projects() {
           {activeWork.projects.map((p, i) => (
             <motion.article
               key={p.name}
-              initial={{ opacity: 0, x: 60, rotate: i % 2 ? 2 : -2 }}
-              animate={{ opacity: 1, x: 0, rotate: i % 2 ? 1.2 : -1.2 }}
-              whileHover={{ rotate: 0, scale: 1.02, y: -6 }}
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.45, delay: Math.min(i, 4) * 0.07, ease: [0.4, 0, 0.2, 1] }}
-              className="flex w-[290px] shrink-0 flex-col overflow-hidden rounded-3xl bg-white sm:w-[340px]"
-              style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)', scrollSnapAlign: 'start' }}
+              className="w-[290px] shrink-0 sm:w-[340px]"
+              style={{ scrollSnapAlign: 'start' }}
             >
+              <Pop
+                tilt={i % 2 ? 1.2 : -1.2}
+                className="flex h-full flex-col overflow-hidden rounded-3xl bg-white"
+                style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
+              >
               <div className="relative">
                 <img src={p.image} alt={p.name} loading="lazy" className="h-40 w-full object-cover" />
                 <span
@@ -1136,6 +1150,7 @@ export function Projects() {
                   ))}
                 </div>
               </div>
+              </Pop>
             </motion.article>
           ))}
         </Carousel>
@@ -1210,14 +1225,18 @@ export function DesignProjects() {
               href={p.link}
               target="_blank"
               rel="noopener noreferrer"
-              initial={{ opacity: 0, x: 60, rotate: i % 2 ? 2 : -2 }}
-              whileInView={{ opacity: 1, x: 0, rotate: i % 2 ? 1.2 : -1.2 }}
+              initial={{ opacity: 0, x: 60 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              whileHover={{ rotate: 0, scale: 1.03, y: -6 }}
               transition={{ duration: 0.45, delay: Math.min(i, 4) * 0.07, ease: [0.4, 0, 0.2, 1] }}
-              className="group flex w-[290px] shrink-0 flex-col overflow-hidden rounded-3xl bg-white sm:w-[340px]"
-              style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)', scrollSnapAlign: 'start' }}
+              className="group block w-[290px] shrink-0 sm:w-[340px]"
+              style={{ scrollSnapAlign: 'start' }}
             >
+              <Pop
+                tilt={i % 2 ? 1.2 : -1.2}
+                className="flex h-full flex-col overflow-hidden rounded-3xl bg-white"
+                style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
+              >
               <img src={p.image} alt={p.title} loading="lazy" className="h-44 w-full object-cover" />
               <div className="flex items-center justify-between gap-3 p-5 sm:p-6">
                 <div className="flex flex-col gap-1">
@@ -1236,6 +1255,7 @@ export function DesignProjects() {
                   <ArrowUpRight size={22} strokeWidth={2.25} />
                 </span>
               </div>
+              </Pop>
             </motion.a>
           ))}
         </Carousel>
