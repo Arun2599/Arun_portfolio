@@ -9,7 +9,11 @@ import {
   useTransform,
   type MotionValue,
 } from 'framer-motion'
-import { ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, Mail, MapPin, Menu, Phone, X } from 'lucide-react'
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Mail, MapPin, Menu, Phone, X } from 'lucide-react'
+import gsap from 'gsap'
+import { Observer } from 'gsap/Observer'
+
+gsap.registerPlugin(Observer)
 import { GRAIN } from './Hero'
 
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
@@ -30,7 +34,7 @@ const ANTON: React.CSSProperties = {
 }
 
 const ABOUT_TEXT =
-  'I am a UI/UX designer and full-stack developer with 3+ years of experience building complete products. From quick commerce apps to enterprise ERP systems, I handle everything — design, development, and deployment. I work hard and promise to give you top-notch work on time, without ever compromising on quality.'
+  'I am a UI/UX designer, full-stack developer, system engineer and mobile app developer with 3+ years of experience building complete products. From quick commerce apps to enterprise ERP systems, I handle everything — design, development, and deployment. I work hard and promise to give you top-notch work on time, without ever compromising on quality.'
 
 const STATS = [
   { value: 3, suffix: '+', label: 'Years Experience', bg: '#F4845F', tilt: -3 },
@@ -236,6 +240,29 @@ const WORK = [
   },
 ]
 
+/* category per project — the grid groups by what was built, not where; company stays as a card label */
+const PROJECT_CATS: Record<string, string> = {
+  'Skill Development': 'Early Work',
+  'Card Memory Game': 'Early Work',
+  'Design-Development Bridge': 'Early Work',
+  'Network App': 'ERP & Dashboards',
+  'Quick Commerce Platform': 'Mobile Apps',
+  CoraSuperPos: 'ERP & Dashboards',
+  Innerplay: 'Mobile Apps',
+  CoraERP: 'ERP & Dashboards',
+  'Vignesh Homes Website': 'Websites',
+  'Grace Auto Service ERP': 'ERP & Dashboards',
+  'Techcora Company Website': 'Websites',
+  'Junior Mastery School ERP': 'ERP & Dashboards',
+  'Church Management App': 'Mobile Apps',
+}
+
+const CATEGORIES = ['All', 'Mobile Apps', 'ERP & Dashboards', 'Websites', 'Early Work']
+
+const ALL_PROJECTS = WORK.flatMap((w) =>
+  w.projects.map((p) => ({ ...p, company: w.company, period: w.period, cat: PROJECT_CATS[p.name] })),
+)
+
 const PALETTE = ['#F4845F', '#6BBF7A', '#6EB5FF', '#E882B4']
 
 const DESIGN_PROJECTS = [
@@ -330,52 +357,6 @@ const SOCIALS = [
   { name: 'Instagram', url: 'https://instagram.com/_arunvjcopzz_' },
   { name: 'Dribbble', url: 'https://dribbble.com/Arunkumar_07' },
 ]
-
-/* horizontal snap carousel with hero-style arrows — tabs/headings above always stay on screen */
-function Carousel({ resetKey, hint, children }: { resetKey?: string; hint: string; children: React.ReactNode }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  return (
-    <>
-      <div
-        key={resetKey}
-        ref={trackRef}
-        className="no-scrollbar -mx-6 mt-10 flex gap-5 overflow-x-auto px-6 pb-4 sm:-mx-10 sm:gap-6 sm:px-10"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {children}
-      </div>
-      <div className="mt-6 flex items-center gap-3">
-        {([-1, 1] as const).map((dir) => {
-          const Icon = dir === -1 ? ArrowLeft : ArrowRight
-          return (
-            <button
-              key={dir}
-              type="button"
-              aria-label={dir === -1 ? 'scroll back' : 'scroll forward'}
-              onClick={() => trackRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' })}
-              className="flex h-12 w-12 items-center justify-center rounded-full hover:scale-[1.08] sm:h-14 sm:w-14"
-              style={{
-                border: '2px solid white',
-                color: 'white',
-                transition: 'transform 150ms, background-color 150ms',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            >
-              <Icon size={24} strokeWidth={2.25} />
-            </button>
-          )
-        })}
-        <span
-          className="ml-1 text-xs font-semibold uppercase text-white sm:text-sm"
-          style={{ letterSpacing: '0.14em', opacity: 0.85 }}
-        >
-          {hint}
-        </span>
-      </div>
-    </>
-  )
-}
 
 const NAV_LINKS = [
   ['About', '#about'],
@@ -478,6 +459,8 @@ export function Nav() {
 }
 
 const TOUCH = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
+/* ponytail: evaluated once on load, no resize handling — good enough for phone vs desktop sizing */
+const SMALL = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
 
 /* card "hover" that works everywhere: pointer devices get whileHover,
    touch devices get the same pop driven by scroll position (once:false = animates in AND out) */
@@ -705,7 +688,7 @@ export function About() {
 
 /* rotated white ribbon stitching the color fields together */
 export function Marquee() {
-  const row = ['UI/UX', 'Frontend', 'Fullstack', 'Logo Art', "Let's work together"]
+  const row = ['UI/UX', 'Fullstack', 'System Engineer', 'Mobile Apps', "Let's work together"]
     .map((t) => `${t} ✦ `)
     .join('')
     .repeat(3)
@@ -1085,8 +1068,104 @@ export function Projects() {
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const ghostX = useTransform(scrollYProgress, [0, 1], ['-10%', '10%'])
-  const [activeId, setActiveId] = useState('techcora')
-  const activeWork = WORK.find((w) => w.id === activeId)!
+  const [activeCat, setActiveCat] = useState('All')
+  const [selected, setSelected] = useState(0)
+  const filtered = activeCat === 'All' ? ALL_PROJECTS : ALL_PROJECTS.filter((p) => p.cat === activeCat)
+
+  /* ring geometry — radius grows with item count so cards never overlap.
+     ponytail: small categories repeat around the ring (marquee-style) so it never spins half-empty */
+  const n = filtered.length
+  const slots = Array.from({ length: n * Math.ceil(8 / n) }, (_, i) => filtered[i % n])
+  const m = slots.length
+  const cardW = SMALL ? 130 : 190
+  const cardH = SMALL ? 180 : 260
+  const radius = Math.max(SMALL ? 190 : 330, Math.round(cardW / 2 / Math.tan(Math.PI / m)) + 30)
+  /* stage sizing — perspective magnifies the front card by 1400/(1400 - radius), and the
+     -8° tilt drops it by radius·sin(8°); budget the real space above and below the ring
+     center so there's no dead air on top and nothing slides under the detail card */
+  const tiltDrop = radius * 0.14
+  const ringAbove = Math.round((cardH / 2 + tiltDrop) * (1400 / (1400 + radius))) + 24
+  const ringBelow = Math.round((cardH / 2 + tiltDrop) * (1400 / (1400 - radius))) + 24
+  const sel = filtered[Math.min(selected, n - 1)]
+
+  /* one GSAP ticker derives BOTH the ring transform and the selected card from the same
+     state.rot every frame — they cannot disagree. Tweens and drags only mutate state. */
+  const trackRef = useRef<HTMLDivElement>(null)
+  const rotateToRef = useRef<((slot: number) => void) | null>(null)
+  const hoverRef = useRef<((enter: boolean) => void) | null>(null)
+  useEffect(() => {
+    const el = trackRef.current
+    const stage = el?.parentElement
+    if (!el || !stage) return
+    const step = 360 / m
+    const AUTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : -7.2 // deg per second
+    const state = { rot: 0, speed: AUTO }
+    let interacted = false
+    let hovering = false
+    let lastFront = -1
+    let idleT: number | undefined
+    const update = () => {
+      state.rot += (state.speed / 60) * gsap.ticker.deltaRatio(60)
+      el.style.transform = `rotateX(-8deg) rotateY(${state.rot}deg)`
+      const front = (((Math.round(-state.rot / step) % m) + m) % m) % n
+      if (front !== lastFront) {
+        lastFront = front
+        setSelected(front)
+      }
+      /* back-half cards are invisible (backface) but their hit-boxes project onto the
+         visible ones and steal clicks — only the front half may receive pointer events */
+      for (let i = 0; i < el.children.length; i++) {
+        const world = ((((step * i + state.rot) % 360) + 540) % 360) - 180
+        ;(el.children[i] as HTMLElement).style.pointerEvents = Math.abs(world) < 90 ? 'auto' : 'none'
+      }
+    }
+    gsap.ticker.add(update)
+    hoverRef.current = (enter) => {
+      hovering = enter
+      if (enter) gsap.to(state, { speed: 0, duration: 0.6, overwrite: 'auto' })
+      else if (!interacted) gsap.to(state, { speed: AUTO, duration: 0.6, overwrite: 'auto' })
+    }
+    /* click or drag = explicit control: stop the auto-spin so the selection stays put,
+       then resume the idle showcase after 8s without interaction (never mid-hover) */
+    const scheduleResume = () => {
+      window.clearTimeout(idleT)
+      idleT = window.setTimeout(() => {
+        if (hovering) scheduleResume()
+        else if (AUTO) gsap.to(state, { speed: AUTO, duration: 1.5, overwrite: 'auto' })
+      }, 8000)
+    }
+    const takeControl = () => {
+      interacted = true
+      gsap.killTweensOf(state)
+      state.speed = 0
+      scheduleResume()
+    }
+    rotateToRef.current = (slot) => {
+      takeControl()
+      const delta = ((((-slot * step - state.rot) % 360) + 540) % 360) - 180
+      gsap.to(state, { rot: state.rot + delta, duration: 0.8, ease: 'power3.inOut' })
+    }
+    const obs = Observer.create({
+      target: stage,
+      type: 'touch,pointer',
+      onPress: takeControl,
+      onDrag: (self) => {
+        state.rot += self.deltaX * 0.35
+      },
+      onDragEnd: (self) => {
+        /* momentum, snapped so the ring never rests between two cards */
+        const end = state.rot + self.velocityX * 0.08
+        gsap.to(state, { rot: Math.round(end / step) * step, duration: 1, ease: 'power3.out' })
+      },
+    })
+    return () => {
+      window.clearTimeout(idleT)
+      gsap.ticker.remove(update)
+      gsap.killTweensOf(state)
+      obs.kill()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCat])
 
   return (
     <section
@@ -1127,7 +1206,7 @@ export function Projects() {
           className="block text-xs font-semibold uppercase text-white sm:text-sm"
           style={{ letterSpacing: '0.18em', opacity: 0.9 }}
         >
-          ✦ Experience ✦
+          ✦ Selected Work ✦
         </motion.span>
 
         <motion.h2
@@ -1150,107 +1229,140 @@ export function Projects() {
           className="mt-4 font-medium text-white"
           style={{ fontSize: 'clamp(1rem, 1.8vw, 1.25rem)', opacity: 0.95 }}
         >
-          Explore projects from my professional journey
+          Browse by what I build — apps, ERPs, websites
         </motion.p>
 
-        {/* company tabs */}
-        <div className="mt-10 flex flex-wrap gap-3 sm:gap-4">
-          {WORK.map((w) => {
-            const isOn = w.id === activeId
+        {/* category filter pills */}
+        <div className="mt-10 flex flex-wrap gap-3">
+          {CATEGORIES.map((c) => {
+            const isOn = c === activeCat
+            const count = c === 'All' ? ALL_PROJECTS.length : ALL_PROJECTS.filter((p) => p.cat === c).length
             return (
               <motion.button
-                key={w.id}
+                key={c}
                 type="button"
-                onClick={() => setActiveId(w.id)}
-                whileHover={{ scale: 1.04, rotate: 0 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-3 rounded-3xl px-5 py-3.5 text-left sm:px-6 sm:py-4"
+                onClick={() => {
+                  setActiveCat(c)
+                  setSelected(0)
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                className="rounded-full px-5 py-2.5 text-xs font-bold uppercase sm:px-6 sm:py-3 sm:text-sm"
                 style={{
                   border: '2px solid white',
                   backgroundColor: isOn ? 'white' : 'transparent',
-                  boxShadow: isOn ? '6px 6px 0 rgba(0,0,0,0.18)' : 'none',
-                  transition: `background-color 300ms ${EASE}`,
+                  color: isOn ? '#111' : 'white',
+                  letterSpacing: '0.1em',
+                  boxShadow: isOn ? '5px 5px 0 rgba(0,0,0,0.18)' : 'none',
+                  transition: `background-color 300ms ${EASE}, color 300ms ${EASE}`,
                 }}
               >
-                <span className="flex flex-col">
-                  <span
-                    style={{
-                      ...CARD_TITLE,
-                      fontSize: 'clamp(0.95rem, 1.7vw, 1.2rem)',
-                      color: isOn ? '#111' : 'white',
-                    }}
-                  >
-                    {w.company}
-                  </span>
-                  <span
-                    className="text-[10px] font-bold uppercase sm:text-xs"
-                    style={{ letterSpacing: '0.1em', color: isOn ? '#111' : 'white', opacity: 0.7 }}
-                  >
-                    {w.period} · {w.duration} · {w.projects.length} projects
-                  </span>
-                </span>
+                {c} <span style={{ opacity: 0.55 }}>{count}</span>
               </motion.button>
             )
           })}
         </div>
 
-        {/* project carousel — tabs stay on screen, projects scroll sideways like the hero */}
-        <Carousel resetKey={activeId} hint={`Swipe or use arrows — ${activeWork.projects.length} projects`}>
-          {activeWork.projects.map((p, i) => (
-            <motion.article
-              key={p.name}
-              initial={{ opacity: 0, x: 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: Math.min(i, 4) * 0.07, ease: [0.4, 0, 0.2, 1] }}
-              className="w-[290px] shrink-0 sm:w-[340px]"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <Pop
-                tilt={i % 2 ? 1.2 : -1.2}
-                className="flex h-full flex-col overflow-hidden rounded-3xl bg-white"
-                style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
+        <p
+          className="mt-6 text-[10px] font-semibold uppercase text-white sm:text-xs"
+          style={{ letterSpacing: '0.14em', opacity: 0.75 }}
+        >
+          ✦ Drag to spin — the front card shows its details below ✦
+        </p>
+
+        {/* 3D ring gallery — CSS 3D transforms spun by GSAP, echoing the WebGL image-dome idea:
+            project shots orbit the viewer, fly in on scroll, click one for details */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
+          className="relative mt-10 cursor-grab active:cursor-grabbing"
+          style={{ height: ringAbove + ringBelow, perspective: 1400, touchAction: 'pan-y' }}
+          onMouseEnter={() => hoverRef.current?.(true)}
+          onMouseLeave={() => hoverRef.current?.(false)}
+        >
+          <div
+            key={activeCat}
+            ref={trackRef}
+            className="absolute left-1/2"
+            style={{ top: ringAbove, transformStyle: 'preserve-3d' }}
+          >
+            {slots.map((p, i) => (
+              <button
+                key={`${p.name}-${i}`}
+                type="button"
+                onClick={() => rotateToRef.current?.(i)}
+                aria-label={`show details for ${p.name}`}
+                aria-hidden={i >= n}
+                tabIndex={i >= n ? -1 : 0}
+                className="absolute cursor-pointer overflow-hidden rounded-2xl"
+                style={{
+                  width: cardW,
+                  height: cardH,
+                  left: -cardW / 2,
+                  top: -cardH / 2,
+                  transform: `rotateY(${(360 / m) * i}deg) translateZ(${radius}px)`,
+                  backfaceVisibility: 'hidden',
+                  border: sel === p ? '3px solid white' : '3px solid rgba(255,255,255,0.35)',
+                  boxShadow: '6px 6px 0 rgba(0,0,0,0.18)',
+                }}
               >
-              <div className="relative">
-                <img src={p.image} alt={p.name} loading="lazy" className="h-40 w-full object-cover" />
+                <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover" />
                 <span
-                  className="absolute top-3 left-3 rounded-full bg-white px-3.5 py-1.5 text-sm"
-                  style={{ ...CARD_TITLE, letterSpacing: '0.02em' }}
+                  className="absolute inset-x-0 bottom-0 px-3 pb-2.5 pt-8 text-left text-[11px] font-bold uppercase text-white sm:text-xs"
+                  style={{
+                    letterSpacing: '0.08em',
+                    background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.75) 100%)',
+                  }}
                 >
-                  {i + 1} / {activeWork.projects.length}
+                  {p.name}
                 </span>
-              </div>
-              <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
-                <h3 style={{ ...CARD_TITLE, fontSize: 'clamp(1.1rem, 1.9vw, 1.35rem)' }}>{p.name}</h3>
-                <p className="text-sm font-medium" style={{ color: '#111', opacity: 0.65, lineHeight: 1.6 }}>
-                  {p.desc}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {p.highlights.map((h, hi) => (
-                    <span
-                      key={h}
-                      className="rounded-full px-3 py-1 text-[10px] font-bold uppercase text-white sm:text-xs"
-                      style={{ backgroundColor: PALETTE[(i + hi) % PALETTE.length], letterSpacing: '0.06em' }}
-                    >
-                      {h}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
-                  {p.skills.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase sm:text-xs"
-                      style={{ border: '1.5px solid rgba(0,0,0,0.25)', color: '#111', letterSpacing: '0.04em' }}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              </Pop>
-            </motion.article>
-          ))}
-        </Carousel>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* detail card for the selected project — keyed remount (no exit wait) so it can
+            never lag behind the ring while spinning */}
+        <motion.div
+          key={sel.name}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className="mx-auto mt-8 max-w-2xl rounded-3xl bg-white p-6 sm:p-8"
+          style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
+        >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 style={{ ...CARD_TITLE, fontSize: 'clamp(1.2rem, 2.2vw, 1.6rem)' }}>{sel.name}</h3>
+              <span
+                className="rounded-full px-3.5 py-1.5 text-[10px] font-bold uppercase text-white sm:text-xs"
+                style={{ backgroundColor: '#F4845F', letterSpacing: '0.08em' }}
+              >
+                {sel.cat}
+              </span>
+            </div>
+            <p
+              className="mt-1.5 text-[10px] font-bold uppercase sm:text-xs"
+              style={{ color: '#111', opacity: 0.5, letterSpacing: '0.08em' }}
+            >
+              {sel.company} · {sel.period}
+            </p>
+            <p className="mt-3 text-sm font-medium sm:text-base" style={{ color: '#111', opacity: 0.7, lineHeight: 1.65 }}>
+              {sel.desc}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {sel.highlights.map((h, hi) => (
+                <span
+                  key={h}
+                  className="rounded-full px-3 py-1 text-[10px] font-bold uppercase text-white sm:text-xs"
+                  style={{ backgroundColor: PALETTE[hi % PALETTE.length], letterSpacing: '0.06em' }}
+                >
+                  {h}
+                </span>
+              ))}
+            </div>
+        </motion.div>
       </div>
     </section>
   )
@@ -1260,6 +1372,63 @@ export function DesignProjects() {
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const ghostX = useTransform(scrollYProgress, [0, 1], ['8%', '-12%'])
+
+  /* GSAP marquee: drifts on its own, drag/swipe to scroll manually, hover pauses.
+     The belt is doubled, so x wraps at half its width for a seamless loop */
+  const marqueeRef = useRef<HTMLDivElement>(null)
+  const beltRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const wrap = marqueeRef.current
+    const belt = beltRef.current
+    if (!wrap || !belt) return
+    const AUTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : -28 // px per second
+    const state = { x: 0, speed: AUTO }
+    const update = () => {
+      const half = belt.scrollWidth / 2
+      state.x += (state.speed / 60) * gsap.ticker.deltaRatio(60)
+      if (half > 0) state.x = gsap.utils.wrap(-half, 0, state.x)
+      belt.style.transform = `translateX(${state.x}px)`
+    }
+    gsap.ticker.add(update)
+    let dragged = false
+    const obs = Observer.create({
+      target: wrap,
+      type: 'touch,pointer',
+      onPress: () => {
+        dragged = false
+        gsap.killTweensOf(state, 'x')
+      },
+      onDragStart: () => {
+        dragged = true
+      },
+      onDrag: (self) => {
+        state.x += self.deltaX
+      },
+      onDragEnd: (self) =>
+        gsap.to(state, { x: state.x + self.velocityX * 0.12, duration: 1, ease: 'power3.out', overwrite: 'auto' }),
+    })
+    /* a drag must not count as a click on the card links */
+    const blockClick = (e: MouseEvent) => {
+      if (dragged) {
+        e.preventDefault()
+        e.stopPropagation()
+        dragged = false
+      }
+    }
+    const enter = () => gsap.to(state, { speed: 0, duration: 0.5, overwrite: 'auto' })
+    const leave = () => gsap.to(state, { speed: AUTO, duration: 0.5, overwrite: 'auto' })
+    wrap.addEventListener('click', blockClick, true)
+    wrap.addEventListener('mouseenter', enter)
+    wrap.addEventListener('mouseleave', leave)
+    return () => {
+      gsap.ticker.remove(update)
+      gsap.killTweensOf(state)
+      obs.kill()
+      wrap.removeEventListener('click', blockClick, true)
+      wrap.removeEventListener('mouseenter', enter)
+      wrap.removeEventListener('mouseleave', leave)
+    }
+  }, [])
 
   return (
     <section
@@ -1315,26 +1484,33 @@ export function DesignProjects() {
           <span style={{ WebkitTextStroke: '2px white', color: 'transparent' }}>Projects</span>
         </motion.h2>
 
-        <Carousel hint={`Swipe or use arrows — ${DESIGN_PROJECTS.length} designs`}>
-          {DESIGN_PROJECTS.map((p, i) => (
-            <motion.a
-              key={p.title}
+      </div>
+
+      {/* lite auto-scroll + manual drag — pauses on hover, cards stay clickable */}
+      <div
+        ref={marqueeRef}
+        className="relative mt-12 cursor-grab overflow-hidden active:cursor-grabbing"
+        style={{ zIndex: 10, touchAction: 'pan-y' }}
+      >
+        <div ref={beltRef} className="flex w-max">
+          {[...DESIGN_PROJECTS, ...DESIGN_PROJECTS].map((p, i) => (
+            <a
+              key={i}
               href={p.link}
               target="_blank"
               rel="noopener noreferrer"
-              initial={{ opacity: 0, x: 60 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: Math.min(i, 4) * 0.07, ease: [0.4, 0, 0.2, 1] }}
+              draggable={false}
+              aria-hidden={i >= DESIGN_PROJECTS.length}
+              tabIndex={i >= DESIGN_PROJECTS.length ? -1 : 0}
               className="group block w-[290px] shrink-0 sm:w-[340px]"
-              style={{ scrollSnapAlign: 'start' }}
+              style={{ marginRight: '1.25rem' }}
             >
               <Pop
-                tilt={i % 2 ? 1.2 : -1.2}
+                tilt={i % 2 ? 1 : -1}
                 className="flex h-full flex-col overflow-hidden rounded-3xl bg-white"
                 style={{ boxShadow: '8px 8px 0 rgba(0,0,0,0.18)' }}
               >
-              <img src={p.image} alt={p.title} loading="lazy" className="h-44 w-full object-cover" />
+              <img src={p.image} alt={p.title} loading="lazy" draggable={false} className="h-44 w-full object-cover" />
               <div className="flex items-center justify-between gap-3 p-5 sm:p-6">
                 <div className="flex flex-col gap-1">
                   <h3 style={{ ...CARD_TITLE, fontSize: 'clamp(1.05rem, 1.9vw, 1.3rem)' }}>{p.title}</h3>
@@ -1353,9 +1529,9 @@ export function DesignProjects() {
                 </span>
               </div>
               </Pop>
-            </motion.a>
+            </a>
           ))}
-        </Carousel>
+        </div>
       </div>
     </section>
   )

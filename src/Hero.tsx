@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+import gsap from 'gsap'
 
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const DURATION = 650
@@ -15,25 +16,25 @@ const SKILLS = [
     panel: '#F79B7F',
   },
   {
-    ghost: 'FRONTEND',
-    title: 'FRONTEND DEVELOPER',
-    desc: 'Pixel-perfect, responsive interfaces built with React, Angular and Tailwind — smooth on every screen.',
+    ghost: 'FULLSTACK',
+    title: 'FULL STACK DEVELOPER',
+    desc: 'I design and build complete products — from Figma to Play Store. End-to-end apps users love.',
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png',
     bg: '#6BBF7A',
     panel: '#85CC92',
   },
   {
-    ghost: 'FULLSTACK',
-    title: 'FULL STACK DEVELOPER',
-    desc: 'I design and build complete products — from Figma to Play Store. End-to-end apps users love.',
+    ghost: 'SYSTEMS',
+    title: 'SYSTEM ENGINEER',
+    desc: 'ERP, POS and school management systems on Rust, PostgreSQL and Firebase — enterprise scale, real-time data.',
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png',
     bg: '#E882B4',
     panel: '#ED9DC4',
   },
   {
-    ghost: 'LOGO ART',
-    title: 'LOGO DESIGNER',
-    desc: 'Memorable brand marks and identities that give your business a real look and feel.',
+    ghost: 'MOBILE',
+    title: 'MOBILE APP DEVELOPER',
+    desc: 'Cross-platform apps with Ionic and React Native — 4+ apps live on the Play Store and App Store.',
     src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png',
     bg: '#6EB5FF',
     panel: '#8DC4FF',
@@ -47,8 +48,9 @@ type Role = 'center' | 'left' | 'right' | 'back'
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640)
+  const figRefs = useRef<(HTMLDivElement | null)[]>([])
+  const firstRun = useRef(true)
 
   useEffect(() => {
     SKILLS.forEach(({ src }) => {
@@ -59,15 +61,11 @@ export default function Hero() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const navigate = useCallback(
-    (dir: 'next' | 'prev') => {
-      if (isAnimating) return
-      setIsAnimating(true)
-      setActiveIndex((prev) => (dir === 'next' ? (prev + 1) % 4 : (prev + 3) % 4))
-      setTimeout(() => setIsAnimating(false), DURATION)
-    },
-    [isAnimating],
-  )
+  /* GSAP moves figures between slots — overwrite:'auto' lets rapid clicks retarget
+     mid-flight smoothly instead of locking navigation until the tween ends */
+  const navigate = useCallback((dir: 'next' | 'prev') => {
+    setActiveIndex((prev) => (dir === 'next' ? (prev + 1) % 4 : (prev + 3) % 4))
+  }, [])
 
   // auto-play the skill carousel
   useEffect(() => {
@@ -91,18 +89,17 @@ export default function Hero() {
     return 'back'
   }
 
-  const roleStyle = (role: Role): React.CSSProperties => {
+  const roleVars = (role: Role): gsap.TweenVars => {
     switch (role) {
       case 'center':
         return {
           left: '50%',
-          bottom: isMobile ? '22%' : 0,
+          bottom: isMobile ? '22%' : '0%',
           height: isMobile ? '60%' : '92%',
-          transform: `translateX(-50%) scale(${isMobile ? 1.25 : 1.68})`,
-          filter: 'none',
+          scale: isMobile ? 1.25 : 1.68,
+          filter: 'blur(0px)',
           opacity: 1,
           zIndex: 20,
-          animation: 'bob 5s ease-in-out infinite',
         }
       case 'left':
       case 'right':
@@ -110,7 +107,7 @@ export default function Hero() {
           left: role === 'left' ? (isMobile ? '20%' : '30%') : isMobile ? '80%' : '70%',
           bottom: isMobile ? '32%' : '12%',
           height: isMobile ? '16%' : '28%',
-          transform: 'translateX(-50%) scale(1)',
+          scale: 1,
           filter: 'blur(2px)',
           opacity: 0.85,
           zIndex: 10,
@@ -120,7 +117,7 @@ export default function Hero() {
           left: '50%',
           bottom: isMobile ? '32%' : '12%',
           height: isMobile ? '13%' : '22%',
-          transform: 'translateX(-50%) scale(1)',
+          scale: 1,
           filter: 'blur(4px)',
           opacity: 1,
           zIndex: 5,
@@ -128,10 +125,21 @@ export default function Hero() {
     }
   }
 
+  useLayoutEffect(() => {
+    figRefs.current.forEach((el, i) => {
+      if (!el) return
+      const role = roleOf(i)
+      const vars = { ...roleVars(role), xPercent: -50 }
+      if (firstRun.current) gsap.set(el, vars)
+      else gsap.to(el, { ...vars, duration: 0.9, ease: 'power3.inOut', overwrite: 'auto' })
+      /* the idle bob (CSS `translate`) composes with GSAP's transform */
+      el.style.animation = role === 'center' ? 'bob 5s ease-in-out infinite' : 'none'
+    })
+    firstRun.current = false
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, isMobile])
+
   const active = SKILLS[activeIndex]
-  const transition = ['transform', 'filter', 'opacity', 'left']
-    .map((p) => `${p} ${DURATION}ms ${EASE}`)
-    .join(', ')
 
   return (
     <div
@@ -225,12 +233,13 @@ export default function Hero() {
           {SKILLS.map((s, i) => (
             <div
               key={s.src}
+              ref={(el) => {
+                figRefs.current[i] = el
+              }}
               style={{
                 position: 'absolute',
                 aspectRatio: '0.6 / 1',
-                transition,
                 willChange: 'transform, filter, opacity',
-                ...roleStyle(roleOf(i)),
               }}
             >
               <img
@@ -301,7 +310,7 @@ export default function Hero() {
             <button
               key={s.title}
               aria-label={s.title}
-              onClick={() => !isAnimating && setActiveIndex(i)}
+              onClick={() => setActiveIndex(i)}
               className="rounded-full"
               style={{
                 width: i === activeIndex ? 28 : 8,
