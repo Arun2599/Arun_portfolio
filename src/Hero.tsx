@@ -2,6 +2,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import gsap from 'gsap'
+import orangeImg from './assets/Orange.webp'
+import greenImg from './assets/green.webp'
+import pinkImg from './assets/pink.webp'
+import blueImg from './assets/blue.webp'
 
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const DURATION = 650
@@ -11,7 +15,7 @@ const SKILLS = [
     ghost: 'UI / UX',
     title: 'UI/UX DESIGNER',
     desc: 'Creating intuitive, user-centered digital experiences that delight users and drive business goals.',
-    src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/1.02464a56.png',
+    src: orangeImg,
     bg: '#F4845F',
     panel: '#F79B7F',
   },
@@ -19,7 +23,7 @@ const SKILLS = [
     ghost: 'FULLSTACK',
     title: 'FULL STACK DEVELOPER',
     desc: 'I design and build complete products — from Figma to Play Store. End-to-end apps users love.',
-    src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png',
+    src: greenImg,
     bg: '#6BBF7A',
     panel: '#85CC92',
   },
@@ -27,7 +31,7 @@ const SKILLS = [
     ghost: 'SYSTEMS',
     title: 'SYSTEM ENGINEER',
     desc: 'ERP, POS and school management systems on Rust, PostgreSQL and Firebase — enterprise scale, real-time data.',
-    src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png',
+    src: pinkImg,
     bg: '#E882B4',
     panel: '#ED9DC4',
   },
@@ -35,7 +39,7 @@ const SKILLS = [
     ghost: 'MOBILE',
     title: 'MOBILE APP DEVELOPER',
     desc: 'Cross-platform apps with Ionic and React Native — 4+ apps live on the Play Store and App Store.',
-    src: 'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png',
+    src: blueImg,
     bg: '#6EB5FF',
     panel: '#8DC4FF',
   },
@@ -239,7 +243,6 @@ export default function Hero() {
               style={{
                 position: 'absolute',
                 aspectRatio: '0.6 / 1',
-                willChange: 'transform, filter, opacity',
               }}
             >
               <img
