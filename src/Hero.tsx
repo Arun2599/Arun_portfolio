@@ -13,7 +13,7 @@ const DURATION = 650
 const SKILLS = [
   {
     ghost: 'UI / UX',
-    title: 'UI/UX DESIGNER',
+    title: 'SR. UI/UX DESIGNER',
     desc: 'Creating intuitive, user-centered digital experiences that delight users and drive business goals.',
     src: orangeImg,
     bg: '#F4845F',
@@ -21,7 +21,7 @@ const SKILLS = [
   },
   {
     ghost: 'FULLSTACK',
-    title: 'FULL STACK DEVELOPER',
+    title: 'SR. FULL STACK DEVELOPER',
     desc: 'I design and build complete products — from Figma to Play Store. End-to-end apps users love.',
     src: greenImg,
     bg: '#6BBF7A',
@@ -29,7 +29,7 @@ const SKILLS = [
   },
   {
     ghost: 'SYSTEMS',
-    title: 'SYSTEM ENGINEER',
+    title: 'SR. SYSTEM ENGINEER',
     desc: 'ERP, POS and school management systems on Rust, PostgreSQL and Firebase — enterprise scale, real-time data.',
     src: pinkImg,
     bg: '#E882B4',
@@ -37,7 +37,7 @@ const SKILLS = [
   },
   {
     ghost: 'MOBILE',
-    title: 'MOBILE APP DEVELOPER',
+    title: 'SR. MOBILE APP DEVELOPER',
     desc: 'Cross-platform apps with Ionic and React Native — 4+ apps live on the Play Store and App Store.',
     src: blueImg,
     bg: '#6EB5FF',

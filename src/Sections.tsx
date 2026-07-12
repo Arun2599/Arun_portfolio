@@ -34,7 +34,7 @@ const ANTON: React.CSSProperties = {
 }
 
 const ABOUT_TEXT =
-  'I am a UI/UX designer, full-stack developer, system engineer and mobile app developer with 3+ years of experience building complete products. From quick commerce apps to enterprise ERP systems, I handle everything — design, development, and deployment. I work hard and promise to give you top-notch work on time, without ever compromising on quality.'
+  'I am a UI/UX designer, full-stack developer, system engineer and mobile app developer with 3+ years of experience building complete products. From quick commerce apps to enterprise ERP systems, I handle everything — design, development, and deployment. I take pride in every detail, delivering top-notch work on time — without ever compromising on quality.'
 
 const STATS = [
   { value: 3, suffix: '+', label: 'Years Experience', bg: '#F4845F', tilt: -3 },
@@ -115,7 +115,7 @@ const JOBS = [
   {
     company: 'Techcora Corporation',
     period: '2023 – Present',
-    role: 'UI/UX Designer & Full-Stack Developer',
+    role: 'Sr. UI/UX Designer & Full-Stack Developer',
     location: 'Chennai, India',
     present: true,
     tilt: -1.5,
